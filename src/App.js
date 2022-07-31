@@ -16,76 +16,60 @@ class App extends Component {
 
     this.state = {
       photos: [],
-      basketball: [],
-      honda: [],
-      lion: [],
       title: "",
-      isLoading: true,
+      loading: 1,
     };
   }
 
   //Loading external data when our component gets mounted to the DOM via searchTag function
   componentDidMount() {
-    this.searchTag();
-    this.searchTag("basketball");
-    this.searchTag("honda");
-    this.searchTag("lion");
+    let tag = window.location.href.slice(
+      window.location.href.lastIndexOf("/") + 1
+    );
+    this.searchTag(tag ? tag : null);
   }
-  // Requesting data from the Flickr API using the Fetch API using the searchTag function
-  searchTag = (tag = 'basketball') => {
-    console.log(b);
-    fetch(
-      `https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=${apiKey}&tags=${tag}&per_page=16&format=json&nojsoncallback=1`
-    )
-      //After the fetch method executes the result is returned in JSON format and then the state is updated by passing in a function that takes the JSON data and returns a new state
-      .then((res) => res.json())
 
-      .then((response) => {
-        if (tag === "basketball") {
-          this.setState({
-            basketball: response.photos.photo,
-            loading: false,
-          });
-        } else if (tag === "honda") {
-          this.setState({
-            honda: response.photos.photo,
-            loading: false,
-          });
-        } else if (tag === "lion") {
-          this.setState({
-            lion: response.photos.photo,
-            loading: false,
-          });
-        } else {
+  // Requesting data from the Flickr API with API key
+  searchTag = (tag) => {
+    if (tag) {
+      fetch(
+        `https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=${apiKey}&tags=${tag}&per_page=16&format=json&nojsoncallback=1`
+      )
+        //Formatting the api information into JSON for cleaner research
+        .then((res) => res.json())
+
+        .then((response) => {
+         
           this.setState({
             photos: response.photos.photo,
-            loading: false,
+            loading: 0,
             title: tag,
           });
-        }
-      })
-      //Creating an error function that takes the parameter 'error'
-      .catch((error) => {
-        console.log("Error collecting data", error);
+        })
+        //catching any error 
+        .catch((error) => {
+          console.log("Error collecting data", error);
+        });
+    } else {
+      this.setState({
+        loading: 0,
       });
+    }
   };
-  //Adding a loading indicator to aim for Exceeds
-  // manageLoading = (indicator) => {
-  //   this.setState({
-  //     loading: indicator,
-  //   });
-  // };
-
-  //Rendering the child components of our app and passing them external API data state via props. Also establishing a header container and welcome message using Bootstrap. Also calling the NoPage component for routes that do not exist
+  //integrate a loading indicator to aim for Exceeds
+  manageLoading = (indicator) => {
+    this.setState({ loading: indicator });
+  };
+  //Rendering the default display of photo gallery
   render() {
     return (
       <div>
         <div>
           <Container>
-            <h1> Welcome to the Photo Gallery </h1>
+            <h1>Welcome to the Photo Gallery </h1>
             <p>
               This is an app built by your trusted developer Jerry Louis! Feel
-              free to search any items you think of !
+              free to search any items you think of!
             </p>
           </Container>
         </div>
@@ -95,53 +79,24 @@ class App extends Component {
             tag={this.state.title}
             setLoading={this.manageLoading}
           />
-          <Nav />
+          <Nav
+            searchTag={this.searchTag}
+            tag={this.state.title}
+            setLoading={this.manageLoading}
+          />
           <Switch>
             <Route
               exact
               path="/"
-              render={() => <PhotoContainer
-                data={this.state.photos}
-                title={this.state.query}
-              />}
-            />
-            {/* <Redirect from="/search/basketball" to="/basketball" /> */}
-            <Route
-              exact
-              path="/basketball"
               render={() => (
                 <PhotoContainer
-                  data={this.state.basketball}
-                  title="basketball"
+                  data={this.state.photos}
+                  title={this.state.title}
                   loading={this.state.loading}
+                  onSearch={() => this.searchTag}
                 />
               )}
             />
-            
-            <Route
-              exact
-              path="/honda"
-              render={() => (
-                <PhotoContainer
-                  data={this.state.honda}
-                  title="honda"
-                  loading={this.state.loading}
-                />
-              )}
-            />
-          
-            <Route
-              exact
-              path="/lion"
-              render={() => (
-                <PhotoContainer
-                  data={this.state.lion}
-                  title="lion"
-                  loading={this.state.loading}
-                />
-              )}
-            />
-
             <Route
               exact
               path="/search/:tag"
@@ -150,6 +105,7 @@ class App extends Component {
                   data={this.state.photos}
                   title={this.state.title}
                   loading={this.state.loading}
+                  onSearch={() => this.searchTag}
                 />
               )}
             />

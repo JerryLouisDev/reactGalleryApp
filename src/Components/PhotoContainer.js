@@ -4,7 +4,6 @@ import NotFound from "./NotFound";
 import Photo from "./Photo";
 
 const PhotoContainer = (props) => {
-    console.log(props.data);
   let photos = props.data.map((photo) => (
     <Photo
       url={`https://live.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}.jpg`}
